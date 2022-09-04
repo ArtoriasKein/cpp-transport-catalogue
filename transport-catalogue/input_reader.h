@@ -27,13 +27,13 @@ namespace transport_catalogue {
             ::std::vector<::std::pair<::std::string, int>> stop_to_distance;
         };
 
-        CommandType ParseCommand(::std::string query);
-        ::std::vector<::std::string> ParseRoundedRoute(::std::string query);
-        ::std::vector<::std::string> ParseNotRoundedRoute(::std::string query);
-        ::std::pair<::std::vector<::std::string>, bool> ParseRoute(::std::string query);
-        BusInput ParseBusInput(::std::string query);
-        StopInput ParseStop(::std::string query);
-        StopDistancesInput ParseStopDistances(::std::string query);
+        CommandType ParseCommand(const ::std::string& query);
+        ::std::vector<::std::string> ParseRoundedRoute(const ::std::string& query);
+        ::std::vector<::std::string> ParseNotRoundedRoute(const ::std::string& query);
+        ::std::pair<::std::vector<::std::string>, bool> ParseRoute(const ::std::string& query);
+        BusInput ParseBusInput(const ::std::string& query);
+        StopInput ParseStop(const ::std::string& query);
+        StopDistancesInput ParseStopDistances(const ::std::string& query);
         TransportCatalogue ParseInput(::std::istream& input);
     }
 }
