@@ -25,8 +25,8 @@ namespace transport_catalogue {
         };
 
         void AddStop(const ::std::string& name, double latitude, double longitude);
-        void AddBus(const ::std::string& name, ::std::vector<::std::string> stops, bool rounded);
-        void AddStopDistances(const ::std::string& stop_name, ::std::vector<::std::pair<::std::string, int>> stops_and_distances);
+        void AddBus(const ::std::string& name, const ::std::vector<::std::string>& stops, bool rounded);
+        void AddStopDistances(const ::std::string& stop_name, const ::std::vector<::std::pair<::std::string, int>>& stops_and_distances);
         struct Statistics {
             bool found;
             int stops_count;
