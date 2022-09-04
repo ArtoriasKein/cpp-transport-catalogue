@@ -134,10 +134,10 @@ TransportCatalogue input::ParseInput(::std::istream& input) {
         }
         }
     }
-    for (const auto stop_with_distances : distances_input) {
+    for (const auto& stop_with_distances : distances_input) {
         result.AddStopDistances(stop_with_distances.name, stop_with_distances.stop_to_distance);
     }
-    for (const auto bus : buses_input) {
+    for (const auto& bus : buses_input) {
         result.AddBus(bus.name, bus.route, bus.is_rounded);
     }
     return result;
