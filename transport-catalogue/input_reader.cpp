@@ -3,7 +3,7 @@
 
 using namespace transport_catalogue;
 
-input::CommandType input::ParseCommand(::std::string query) {
+input::CommandType input::ParseCommand(const ::std::string& query) {
     ::std::string command = query.substr(0, query.find(' '));
     if (command == "Bus") {
         return input::CommandType::Bus;
@@ -14,29 +14,31 @@ input::CommandType input::ParseCommand(::std::string query) {
     return input::CommandType::Stop;
 }
 
-::std::vector<::std::string> input::ParseRoundedRoute(::std::string query) {
+::std::vector<::std::string> input::ParseRoundedRoute(const ::std::string& query) {
     ::std::vector<::std::string> result;
-    while (query.find('-') != ::std::string::npos) {
-        ::std::string stop_name = query.substr(0, query.find('-') - 1);
-        query.erase(0, stop_name.size() + 3);
+    ::std::string line = query;
+    while (line.find('-') != ::std::string::npos) {
+        ::std::string stop_name = line.substr(0, line.find('-') - 1);
+        line.erase(0, stop_name.size() + 3);
         result.push_back(stop_name);
     }
-    result.push_back(query);
+    result.push_back(line);
     return result;
 }
 
-::std::vector<::std::string> input::ParseNotRoundedRoute(::std::string query) {
+::std::vector<::std::string> input::ParseNotRoundedRoute(const ::std::string& query) {
     ::std::vector<::std::string> result;
-    while (query.find('>') != ::std::string::npos) {
-        ::std::string stop_name = query.substr(0, query.find('>') - 1);
-        query.erase(0, stop_name.size() + 3);
+    ::std::string line = query;
+    while (line.find('>') != ::std::string::npos) {
+        ::std::string stop_name = line.substr(0, line.find('>') - 1);
+        line.erase(0, stop_name.size() + 3);
         result.push_back(stop_name);
     }
-    result.push_back(query);
+    result.push_back(line);
     return result;
 }
 
-::std::pair<::std::vector<::std::string>, bool> input::ParseRoute(::std::string query) {
+::std::pair<::std::vector<::std::string>, bool> input::ParseRoute(const ::std::string& query) {
     bool is_rounded = false;
     ::std::vector<::std::string> result;
     if (query.find('>') == std::string::npos) {
@@ -49,7 +51,7 @@ input::CommandType input::ParseCommand(::std::string query) {
     return { result, is_rounded };
 }
 
-input::BusInput input::ParseBusInput(::std::string query) {
+input::BusInput input::ParseBusInput(const ::std::string& query) {
     input::BusInput result;
     ::std::string bus_name = query.substr(query.find(' ') + 1, query.size());
     bus_name = bus_name.substr(0, bus_name.find(':'));
@@ -61,7 +63,7 @@ input::BusInput input::ParseBusInput(::std::string query) {
     return result;
 }
 
-input::StopInput input::ParseStop(::std::string query) {
+input::StopInput input::ParseStop(const ::std::string& query) {
     input::StopInput result;
     ::std::string stop_name = query.substr(query.find(' ') + 1, query.size());
     stop_name = stop_name.substr(0, stop_name.find(':'));
@@ -79,7 +81,7 @@ input::StopInput input::ParseStop(::std::string query) {
     return result;
 }
 
-input::StopDistancesInput input::ParseStopDistances(::std::string query) {
+input::StopDistancesInput input::ParseStopDistances(const ::std::string& query) {
     input::StopDistancesInput result;
     ::std::string stop_name = query.substr(query.find(' ') + 1, query.size());
     stop_name = stop_name.substr(0, stop_name.find(':'));
@@ -132,11 +134,11 @@ TransportCatalogue input::ParseInput(::std::istream& input) {
         }
         }
     }
-    for (const auto bus : buses_input) {
-        result.AddBus(bus.name, bus.route, bus.is_rounded);
-    }
     for (const auto stop_with_distances : distances_input) {
         result.AddStopDistances(stop_with_distances.name, stop_with_distances.stop_to_distance);
+    }
+    for (const auto bus : buses_input) {
+        result.AddBus(bus.name, bus.route, bus.is_rounded);
     }
     return result;
 }
