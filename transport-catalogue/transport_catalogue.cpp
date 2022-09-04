@@ -1,32 +1,67 @@
 #include "transport_catalogue.h"
 
-void transport_catalogue::TransportCatalogue::AddStop(std::string name, double latitude, double longitude) {
+void transport_catalogue::TransportCatalogue::AddStop(const std::string& name, double latitude, double longitude) {
     Coordinates coord;
     coord.lat = latitude;
     coord.lng = longitude;
-    Stop test;
-    test.name = name;
-    test.coordinates = coord;
-    stops_.push_back(test);
+    Stop new_stop;
+    new_stop.name = name;
+    new_stop.coordinates = coord;
+    stops_.push_back(new_stop);
     stopname_to_stop_[stops_.back().name] = &stops_.back();
     stopname_to_busname_[&stops_.back()];
 }
 
-void transport_catalogue::TransportCatalogue::AddBus(std::string name, std::vector<std::string> stops, bool rounded) {
-    Bus test;
-    test.name = name;
+void transport_catalogue::TransportCatalogue::AddBus(const std::string& name, std::vector<std::string> stops, bool rounded) {
+    Bus new_bus;
+    new_bus.name = name;
     for (const std::string stop_name : stops) {
-        test.route.push_back(stopname_to_stop_.at(stop_name));
+        new_bus.route.push_back(stopname_to_stop_.at(stop_name));
     }
-    test.is_rounded = rounded;
-    buses_.push_back(test);
+    new_bus.is_rounded = rounded;
+    buses_.push_back(new_bus);
     busname_to_bus_[buses_.back().name] = &buses_.back();
-    for (const auto stop : test.route) {
+    double distance_real = 0.0;
+    double distance_ideal = 0.0;
+    for (const auto stop : buses_.back().route) {
         stopname_to_busname_[stop].insert(buses_.back().name);
     }
+    if (new_bus.is_rounded == true) {
+        for (int i = 0; i < buses_.back().route.size() - 1; ++i) {
+            if (stops_to_distance.count({ buses_.back().route[i], buses_.back().route[i + 1] }) == 0) {
+                distance_real += stops_to_distance.at({ buses_.back().route[i + 1], buses_.back().route[i] });
+            }
+            else {
+                distance_real += stops_to_distance.at({ buses_.back().route[i], buses_.back().route[i + 1] });
+            }
+            distance_ideal += std::abs(ComputeDistance(buses_.back().route[i]->coordinates, buses_.back().route[i + 1]->coordinates));
+        }
+        for (int i = buses_.back().route.size() - 1; i >= 1; --i) {
+            if (stops_to_distance.count({ buses_.back().route[i], buses_.back().route[i - 1] }) == 0) {
+                distance_real += stops_to_distance.at({ buses_.back().route[i - 1], buses_.back().route[i] });
+            }
+            else {
+                distance_real += stops_to_distance.at({ buses_.back().route[i], buses_.back().route[i - 1] });
+            }
+        }
+        distance_ideal = distance_ideal * 2;
+    }
+    else {
+        for (int i = 0; i < buses_.back().route.size() - 1; ++i) {
+            if (stops_to_distance.count({ buses_.back().route[i], buses_.back().route[i + 1] }) == 0) {
+                distance_real += stops_to_distance.at({ buses_.back().route[i + 1], buses_.back().route[i] });
+            }
+            else {
+                distance_real += stops_to_distance.at({ buses_.back().route[i], buses_.back().route[i + 1] });
+            }
+            distance_ideal += std::abs(ComputeDistance(buses_.back().route[i]->coordinates, buses_.back().route[i + 1]->coordinates));
+        }
+    }
+    buses_.back().distance_real = distance_real;
+    buses_.back().distance_ideal = distance_ideal;
 }
 
-std::pair<bool, std::vector<std::string>> transport_catalogue::TransportCatalogue::BusesOnStop(std::string stop_name) {
+std::pair<bool, std::vector<std::string>> transport_catalogue::TransportCatalogue::BusesOnStop(const std::string& stop_name) {
     std::vector<std::string> result;
     bool found = false;
     if (stopname_to_stop_.count(stop_name) == 0) {
@@ -43,7 +78,7 @@ std::pair<bool, std::vector<std::string>> transport_catalogue::TransportCatalogu
     return { found, result };
 }
 
-transport_catalogue::TransportCatalogue::Statistics transport_catalogue::TransportCatalogue::GetBusInfo(std::string bus) {
+transport_catalogue::TransportCatalogue::Statistics transport_catalogue::TransportCatalogue::GetBusInfo(const std::string& bus) {
     Statistics result;
     if (busname_to_bus_.count(bus) == 0) {
         result.found = false;
@@ -66,45 +101,12 @@ transport_catalogue::TransportCatalogue::Statistics transport_catalogue::Transpo
         }
     }
     result.unique_stops_count = unique_count;
-    double distance_real = 0.0;
-    double distance_ideal = 0.0;
-    if (busname_to_bus_.at(bus)->is_rounded == true) {
-        for (int i = 0; i < busname_to_bus_.at(bus)->route.size() - 1; ++i) {
-            if (stops_to_distance.count({ busname_to_bus_.at(bus)->route[i], busname_to_bus_.at(bus)->route[i + 1] }) == 0) {
-                distance_real += stops_to_distance.at({ busname_to_bus_.at(bus)->route[i + 1], busname_to_bus_.at(bus)->route[i] });
-            }
-            else {
-                distance_real += stops_to_distance.at({ busname_to_bus_.at(bus)->route[i], busname_to_bus_.at(bus)->route[i + 1] });
-            }
-            distance_ideal += std::abs(ComputeDistance(busname_to_bus_.at(bus)->route[i]->coordinates, busname_to_bus_.at(bus)->route[i + 1]->coordinates));
-        }
-        for (int i = busname_to_bus_.at(bus)->route.size() - 1; i >= 1; --i) {
-            if (stops_to_distance.count({ busname_to_bus_.at(bus)->route[i], busname_to_bus_.at(bus)->route[i - 1] }) == 0) {
-                distance_real += stops_to_distance.at({ busname_to_bus_.at(bus)->route[i - 1], busname_to_bus_.at(bus)->route[i] });
-            }
-            else {
-                distance_real += stops_to_distance.at({ busname_to_bus_.at(bus)->route[i], busname_to_bus_.at(bus)->route[i - 1] });
-            }
-        }
-        distance_ideal = distance_ideal * 2;
-    }
-    else {
-        for (int i = 0; i < busname_to_bus_.at(bus)->route.size() - 1; ++i) {
-            if (stops_to_distance.count({ busname_to_bus_.at(bus)->route[i], busname_to_bus_.at(bus)->route[i + 1] }) == 0) {
-                distance_real += stops_to_distance.at({ busname_to_bus_.at(bus)->route[i + 1], busname_to_bus_.at(bus)->route[i] });
-            }
-            else {
-                distance_real += stops_to_distance.at({ busname_to_bus_.at(bus)->route[i], busname_to_bus_.at(bus)->route[i + 1] });
-            }
-            distance_ideal += std::abs(ComputeDistance(busname_to_bus_.at(bus)->route[i]->coordinates, busname_to_bus_.at(bus)->route[i + 1]->coordinates));
-        }
-    }
-    result.distance = distance_real;
-    result.curvature = distance_real / distance_ideal;
+    result.distance = busname_to_bus_.at(bus)->distance_real;
+    result.curvature = busname_to_bus_.at(bus)->distance_real / busname_to_bus_.at(bus)->distance_ideal;
     return result;
 }
 
-void transport_catalogue::TransportCatalogue::AddStopDistances(std::string stop_name, std::vector<std::pair<std::string, int>> stops_and_distances) {
+void transport_catalogue::TransportCatalogue::AddStopDistances(const std::string& stop_name, std::vector<std::pair<std::string, int>> stops_and_distances) {
     for (const auto info : stops_and_distances) {
         stops_to_distance[{stopname_to_stop_[stop_name], stopname_to_stop_[info.first]}] = info.second;
     }
