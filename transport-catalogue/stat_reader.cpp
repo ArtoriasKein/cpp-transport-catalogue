@@ -7,11 +7,10 @@ std::ostream& transport_catalogue::output::operator<<(std::ostream& out, transpo
     return out;
 }
 
-void transport_catalogue::output::ParseOutput(std::istream& input, transport_catalogue::TransportCatalogue catalogue) {
+std::ostream& transport_catalogue::output::ParseOutput(std::ostream& out, std::istream& input, transport_catalogue::TransportCatalogue& catalogue) {
     int requests_count;
     input >> requests_count;
     input.ignore(256, '\n');
-
     std::vector<std::string> results;
     for (int i = 0; i < requests_count; ++i) {
         std::string query;
@@ -24,33 +23,34 @@ void transport_catalogue::output::ParseOutput(std::istream& input, transport_cat
         if (command == "Bus") {
             auto result = catalogue.GetBusInfo(query);
             if (result.found == false) {
-                std::cout << "Bus " << query << ": not found" << std::endl;
+                out << "Bus " << query << ": not found" << std::endl;
                 continue;
             }
-            std::cout << "Bus " << query << ": " << result;
+            out << "Bus " << query << ": " << result;
         }
         else {
             auto result = catalogue.BusesOnStop(query);
             if (result.first == false) {
-                std::cout << "Stop " << query << ": not found" << std::endl;
+                out << "Stop " << query << ": not found" << std::endl;
             }
             else if (result.second.size() == 0) {
-                std::cout << "Stop " << query << ": no buses" << std::endl;
+                out << "Stop " << query << ": no buses" << std::endl;
             }
             else {
-                std::cout << "Stop " << query << ": buses ";
+                out << "Stop " << query << ": buses ";
                 bool is_first = true;
                 for (const std::string bus_name : result.second) {
                     if (is_first) {
                         is_first = false;
-                        std::cout << bus_name;
+                        out << bus_name;
                     }
                     else {
-                        std::cout << " " << bus_name;
+                        out << " " << bus_name;
                     }
                 }
-                std::cout << std::endl;
+                out << std::endl;
             }
         }
     }
+    return out;
 }
