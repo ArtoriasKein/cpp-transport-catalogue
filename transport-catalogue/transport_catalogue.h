@@ -20,11 +20,13 @@ namespace transport_catalogue {
             ::std::string name;
             bool is_rounded;
             ::std::vector<const Stop*> route;
+            double distance_real;
+            double distance_ideal;
         };
 
-        void AddStop(::std::string name, double latitude, double longitude);
-        void AddBus(::std::string name, ::std::vector<::std::string> stops, bool rounded);
-        void AddStopDistances(::std::string stop_name, ::std::vector<::std::pair<::std::string, int>> stops_and_distances);
+        void AddStop(const ::std::string& name, double latitude, double longitude);
+        void AddBus(const ::std::string& name, ::std::vector<::std::string> stops, bool rounded);
+        void AddStopDistances(const ::std::string& stop_name, ::std::vector<::std::pair<::std::string, int>> stops_and_distances);
         struct Statistics {
             bool found;
             int stops_count;
@@ -32,8 +34,8 @@ namespace transport_catalogue {
             double distance;
             double curvature;
         };
-        ::std::pair<bool, ::std::vector<::std::string>> BusesOnStop(::std::string stop_name);
-        Statistics GetBusInfo(::std::string bus);
+        ::std::pair<bool, ::std::vector<::std::string>> BusesOnStop(const ::std::string& stop_name);
+        Statistics GetBusInfo(const ::std::string& bus);
     private:
         ::std::deque<Bus> buses_;
         ::std::deque<Stop> stops_;
