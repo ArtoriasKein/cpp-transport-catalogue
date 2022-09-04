@@ -17,7 +17,7 @@ std::ostream& transport_catalogue::output::ParseOutput(std::ostream& out, std::i
         std::getline(input, query);
         results.push_back(query);
     }
-    for (const std::string output : results) {
+    for (const std::string& output : results) {
         std::string command = output.substr(0, output.find(' '));
         std::string query = output.substr(output.find(' ') + 1, output.size());
         if (command == "Bus") {
@@ -39,7 +39,7 @@ std::ostream& transport_catalogue::output::ParseOutput(std::ostream& out, std::i
             else {
                 out << "Stop " << query << ": buses ";
                 bool is_first = true;
-                for (const std::string bus_name : result.second) {
+                for (const std::string& bus_name : result.second) {
                     if (is_first) {
                         is_first = false;
                         out << bus_name;
