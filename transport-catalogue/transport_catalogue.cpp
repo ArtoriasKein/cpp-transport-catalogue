@@ -12,10 +12,10 @@ void transport_catalogue::TransportCatalogue::AddStop(const std::string& name, d
     stopname_to_busname_[&stops_.back()];
 }
 
-void transport_catalogue::TransportCatalogue::AddBus(const std::string& name, std::vector<std::string> stops, bool rounded) {
+void transport_catalogue::TransportCatalogue::AddBus(const std::string& name, const std::vector<std::string>& stops, bool rounded) {
     Bus new_bus;
     new_bus.name = name;
-    for (const std::string stop_name : stops) {
+    for (const std::string& stop_name : stops) {
         new_bus.route.push_back(stopname_to_stop_.at(stop_name));
     }
     new_bus.is_rounded = rounded;
@@ -71,7 +71,7 @@ std::pair<bool, std::vector<std::string>> transport_catalogue::TransportCatalogu
         found = true;
         return { found, result };
     }
-    for (const auto stop : stopname_to_busname_.at(stopname_to_stop_.at(stop_name))) {
+    for (const auto& stop : stopname_to_busname_.at(stopname_to_stop_.at(stop_name))) {
         result.push_back(std::string(stop));
     }
     found = true;
@@ -94,7 +94,7 @@ transport_catalogue::TransportCatalogue::Statistics transport_catalogue::Transpo
     }
     int unique_count = 0;
     std::unordered_set<std::string_view> unique_stops_names;
-    for (const auto stop : busname_to_bus_.at(bus)->route) {
+    for (const auto& stop : busname_to_bus_.at(bus)->route) {
         if (unique_stops_names.count(stop->name) == 0) {
             unique_stops_names.insert(stop->name);
             ++unique_count;
@@ -106,8 +106,8 @@ transport_catalogue::TransportCatalogue::Statistics transport_catalogue::Transpo
     return result;
 }
 
-void transport_catalogue::TransportCatalogue::AddStopDistances(const std::string& stop_name, std::vector<std::pair<std::string, int>> stops_and_distances) {
-    for (const auto info : stops_and_distances) {
+void transport_catalogue::TransportCatalogue::AddStopDistances(const std::string& stop_name, const std::vector<std::pair<std::string, int>>& stops_and_distances) {
+    for (const auto& info : stops_and_distances) {
         stops_to_distance[{stopname_to_stop_[stop_name], stopname_to_stop_[info.first]}] = info.second;
     }
 }
