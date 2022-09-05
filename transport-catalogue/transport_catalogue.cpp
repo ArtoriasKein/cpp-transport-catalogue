@@ -1,3 +1,4 @@
+#include <utility>
 #include "transport_catalogue.h"
 
 void transport_catalogue::TransportCatalogue::AddStop(const std::string& name, double latitude, double longitude) {
@@ -7,7 +8,7 @@ void transport_catalogue::TransportCatalogue::AddStop(const std::string& name, d
     Stop new_stop;
     new_stop.name = name;
     new_stop.coordinates = coord;
-    stops_.push_back(new_stop);
+    stops_.push_back(std::move(new_stop));
     stopname_to_stop_[stops_.back().name] = &stops_.back();
     stopname_to_busname_[&stops_.back()];
 }
@@ -19,11 +20,11 @@ void transport_catalogue::TransportCatalogue::AddBus(const std::string& name, co
         new_bus.route.push_back(stopname_to_stop_.at(stop_name));
     }
     new_bus.is_rounded = rounded;
-    buses_.push_back(new_bus);
+    buses_.push_back(std::move(new_bus));
     busname_to_bus_[buses_.back().name] = &buses_.back();
     double distance_real = 0.0;
     double distance_ideal = 0.0;
-    for (const auto stop : buses_.back().route) {
+    for (const auto& stop : buses_.back().route) {
         stopname_to_busname_[stop].insert(buses_.back().name);
     }
     if (new_bus.is_rounded == true) {
