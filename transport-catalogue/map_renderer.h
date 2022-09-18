@@ -113,24 +113,24 @@ namespace renderer {
         void SetLineWidth(double line_width);
         void SetStopRadius(double stop_radius);
         void SetBusLabelFontSize(int bus_label_font_size);
-        template <typename NodeContainer>
-        void SetBusLabelOffset(const NodeContainer& bus_label_offset);
+        template <typename OffsetNodeType>
+        void SetBusLabelOffset(const OffsetNodeType& bus_label_offset);
         void SetStopLabelFontSize(int stop_label_font_size);
-        template <typename NodeContainer>
-        void SetStopLabelOffset(const NodeContainer& stop_label_offset);
-        template <typename NodeHolster>
-        void SetUnderlayerColor(NodeHolster& node);
+        template <typename OffsetNodeType>
+        void SetStopLabelOffset(const OffsetNodeType& stop_label_offset);
+        template <typename ColorNodeType>
+        void SetUnderlayerColor(ColorNodeType& node);
         void SetUnderlayerWidth(double underlayer_width);
-        template <typename NodeHolster>
-        void SetColorPalette(NodeHolster& node);
+        template <typename ColorNodeType>
+        void SetColorPalette(ColorNodeTyper& node);
     private:
         MapSettings settings_;
-        template <typename NodeHolster>
+        template <typename ColorNodeType>
         svg::Color MakeColorOutOfNode(NodeHolster& node);
     };
 
-    template <typename NodeHolster>
-    svg::Color MapRenderer::MakeColorOutOfNode(NodeHolster& node) {
+    template <typename ColorNodeType>
+    svg::Color MapRenderer::MakeColorOutOfNode(ColorNodeTyper& node) {
         if (node.IsString()) {
             return svg::Color(node.AsString());
         }
@@ -144,24 +144,24 @@ namespace renderer {
         }
         return svg::Color();
     }
-    template <typename NodeHolster>
-    void MapRenderer::SetColorPalette(NodeHolster& node) {
+    template <typename ColorNodeType>
+    void MapRenderer::SetColorPalette(ColorNodeType& node) {
         for (const auto& color : node) {
             settings_.color_palette.push_back(MakeColorOutOfNode(color));
         }
     }
-    template <typename NodeContainer>
-    void MapRenderer::SetStopLabelOffset(const NodeContainer& stop_label_offset) {
+    template <typename OffsetNodeType>
+    void MapRenderer::SetStopLabelOffset(const OffsetNodeType& stop_label_offset) {
         settings_.stop_label_offset.x = stop_label_offset[0].AsDouble();
         settings_.stop_label_offset.y = stop_label_offset[1].AsDouble();
     }
-    template <typename NodeContainer>
-    void MapRenderer::SetBusLabelOffset(const NodeContainer& bus_label_offset) {
+    template <typename OffsetNodeType>
+    void MapRenderer::SetBusLabelOffset(const OffsetNodeType& bus_label_offset) {
         settings_.bus_label_offset.x = bus_label_offset[0].AsDouble();
         settings_.bus_label_offset.y = bus_label_offset[1].AsDouble();
     }
-    template <typename NodeHolster>
-    void MapRenderer::SetUnderlayerColor(NodeHolster& node) {
+    template <typename ColorNodeType>
+    void MapRenderer::SetUnderlayerColor(ColorNodeType& node) {
         settings_.underlayer_color = MakeColorOutOfNode(node);
     }
 
