@@ -5,48 +5,38 @@
 
 namespace request_handler {
 
-    struct BusRender {
-        std::string_view name;
-        std::vector<std::string_view> route;
-        int color_index = 0;
-        bool is_rounded = false;
-    };
-
-    struct StopInput {
-        std::string name;
-        double latitude;
-        double longitude;
-    };
-
-    struct StopDistancesInput {
-        std::string name;
-        std::vector<std::pair<std::string, int>> stop_to_distance;
-    };
-
-    struct BusInput {
-        std::string name;
-        std::vector<std::string> route;
-        bool is_rounded;
-    };
-
     class RequestHandler {
     public:
         RequestHandler(transport_catalogue::TransportCatalogue& db, renderer::MapRenderer& renderer);
         std::optional<domain::Statistics> GetBusStat(const std::string_view& bus_name) const;
         const std::optional<std::set<std::string_view>> GetBusesByStop(const std::string_view& stop_name) const;
-        void RenderMap(svg::Document& doc) const;
-        void ParseBaseRequests(const json::Node& array);
-        void ParseRenderSettings(const json::Node& node);
-        json::Array ParseStatRequests(const json::Node& node, svg::Document& map);
+        const std::vector<geo::Coordinates> GetAllStopCoordinates() const;
+        const std::set<std::string_view> GetAllBusesNames() const;
+        const std::vector<std::string_view> GetBusRoute(const std::string_view bus_name) const;
+        const geo::Coordinates GetStopCoordinates(const std::string_view stop_name) const;
+        void AddStopToCatalogue(std::string stop_name, double latitude, double longitude);
+        void AddStopDistancesToCatalogue(std::string& stop_name, std::vector<std::pair<std::string, int>> stop_to_distance);
+        void AddBusToCatalogue(std::string& bus_name, std::vector<std::string>& route, bool is_rounded);
+        void SetWidthToRenderer(double width);
+        void SetHeightToRenderer(double height);
+        void SetPaddingToRenderer(double padding);
+        void SetLineWidthToRenderer(double line_width);
+        void SetStopRadiusToRenderer(double stop_radius);
+        void SetBusLabelFontSizeToRenderer(int bus_label_font_size);
+        void SetBusLabelOffsetToRenderer(const json::Array& as_array);
+        void SetStopLabelFontSizeToRenderer(int stop_label_font_size);
+        void SetStopLabelOffsetToRenderer(const json::Array& as_array);
+        void SetUnderlayerColorToRenderer(const json::Node& node);
+        void SetUnderlayerWidthToRenderer(double underlayer_width);
+        void SetColorPaletteToRenderer(const json::Array& as_array);
+        void RenderMap(svg::Document& doc);
+        json::Array ParseStatRequests(const json::Node& node);
     private:
         transport_catalogue::TransportCatalogue& db_;
         renderer::MapRenderer& renderer_;
         json::Node MakeJsonOutputBus(const json::Node& node);
         json::Node MakeJsonOutputStop(const json::Node& node);
         json::Node MakeJsonOutputMap(const json::Node& node, svg::Document& map);
-        BusInput ParseBusInput(const json::Node& node);
-        StopInput ParseStopInput(const json::Node& node);
-        StopDistancesInput ParseStopWithDistanceInput(const json::Node& array);
     };
 
-} // namespace request_handler
+} // namespace request
