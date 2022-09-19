@@ -23,11 +23,17 @@ void transport_catalogue::TransportCatalogue::AddBus(const std::string& name, co
     new_bus.is_rounded = rounded;
     buses_.push_back(std::move(new_bus));
     busname_to_bus_[buses_.back().name] = &buses_.back();
-    double distance_real = 0.0;
-    double distance_ideal = 0.0;
     for (const auto& stop : buses_.back().route) {
         stopname_to_busname_[stop].insert(buses_.back().name);
     }
+    auto result = ComputeDistanceBetweenStops();
+    buses_.back().distance_real = result.first;
+    buses_.back().distance_ideal = result.second;
+}
+
+::std::pair <double, double> transport_catalogue::TransportCatalogue::ComputeDistanceBetweenStops() {
+    double distance_real = 0.0;
+    double distance_ideal = 0.0;
     if (buses_.back().is_rounded == false) {
         for (size_t i = 0; i < buses_.back().route.size() - 1; ++i) {
             if (stops_to_distance.count({ buses_.back().route[i], buses_.back().route[i + 1] }) != 0) {
@@ -68,8 +74,7 @@ void transport_catalogue::TransportCatalogue::AddBus(const std::string& name, co
             distance_ideal += std::abs(ComputeDistance(buses_.back().route[i]->coordinates, buses_.back().route[i + 1]->coordinates));
         }
     }
-    buses_.back().distance_real = distance_real;
-    buses_.back().distance_ideal = distance_ideal;
+    return { distance_real, distance_ideal };
 }
 
 const ::std::optional<::std::set<std::string_view>> transport_catalogue::TransportCatalogue::BusesOnStop(const ::std::string_view& stop_name) const {
