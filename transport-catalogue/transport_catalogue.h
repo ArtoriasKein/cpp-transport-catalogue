@@ -14,8 +14,8 @@ namespace transport_catalogue {
         void AddStopDistances(const ::std::string& stop_name, const ::std::vector<::std::pair<::std::string, int>>& stops_and_distances);
         const ::std::optional<::std::set<std::string_view>> BusesOnStop(const ::std::string_view& stop_name) const;
         const ::std::optional<domain::Statistics> GetBusInfo(const ::std::string_view& bus) const;
-        const ::std::set<::std::string_view> GetAllBusesNames() const;
-        const ::std::vector<::std::string_view> GetBusRoute(const ::std::string_view& bus_name) const;
+        const ::std::set<std::string_view> GetAllBusesNames() const;
+        const ::std::vector<std::string_view> GetBusRoute(const ::std::string_view& bus_name) const;
         const std::vector<geo::Coordinates> GetAllStopCoordinates() const;
         const geo::Coordinates GetStopCoordinates(const std::string_view& stop_name) const;
     private:
@@ -32,5 +32,6 @@ namespace transport_catalogue {
             }
         };
         ::std::unordered_map<::std::pair<const domain::Stop*, const domain::Stop*>, int, StopsHasher> stops_to_distance;
+        ::std::pair <double, double> ComputeDistanceBetweenStops();
     };
 }
