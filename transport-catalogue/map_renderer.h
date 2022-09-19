@@ -1,6 +1,7 @@
 #pragma once
 #include "geo.h"
 #include "svg.h"
+#include "request_handler.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -82,30 +83,39 @@ namespace renderer {
         double zoom_coeff_ = 0;
     };
 
-    struct MapSettings {
-        MapSettings() = default;
-        double width = 0;
-        double height = 0;
-        double padding = 0.0;
-        double line_width = 0.0;
-        double stop_radius = 0.0;
-        int bus_label_font_size = 0;
-        svg::Point bus_label_offset = { 0.0, 0.0 };
-        int stop_label_font_size = 0;
-        svg::Point stop_label_offset = { 0.0, 0.0 };
-        svg::Color underlayer_color;
-        double underlayer_width = 0.0;
-        std::vector<svg::Color> color_palette;
-    };
-
     class MapRenderer {
     public:
-        svg::Polyline MakeRoutePolilyne(std::vector<geo::Coordinates>& all_points, std::vector<geo::Coordinates>& current_points, int color_index) const;
-        svg::Text MakeBusUnderlayer(std::vector<geo::Coordinates>& all_points, geo::Coordinates coordinates, std::string_view bus_name) const;
-        svg::Text MakeBusName(std::vector<geo::Coordinates>& all_points, geo::Coordinates coordinates, int color_index, std::string_view bus_name) const;
-        svg::Circle MakeStop(std::vector<geo::Coordinates>& all_points, geo::Coordinates coordinates) const;
-        svg::Text MakeStopUnderlayer(std::vector<geo::Coordinates>& all_points, geo::Coordinates coordinates, std::string_view stop_name) const;
-        svg::Text MakeStopName(std::vector<geo::Coordinates>& all_points, geo::Coordinates coordinates, std::string_view stop_name) const;
+
+        struct BusRender {
+            std::string_view name;
+            std::vector<std::string_view> route;
+            int color_index = 0;
+            bool is_rounded = false;
+        };
+
+        struct MapSettings {
+            MapSettings() = default;
+            double width = 0;
+            double height = 0;
+            double padding = 0.0;
+            double line_width = 0.0;
+            double stop_radius = 0.0;
+            int bus_label_font_size = 0;
+            svg::Point bus_label_offset = { 0.0, 0.0 };
+            int stop_label_font_size = 0;
+            svg::Point stop_label_offset = { 0.0, 0.0 };
+            svg::Color underlayer_color;
+            double underlayer_width = 0.0;
+            std::vector<svg::Color> color_palette;
+        };
+
+        void RenderMap(request_handler::RequestHandler& handler, svg::Document& doc);
+        svg::Polyline MakeRoutePolilyne(std::vector<geo::Coordinates>& current_points, int color_index) const;
+        svg::Text MakeBusUnderlayer(geo::Coordinates coordinates, std::string_view bus_name) const;
+        svg::Text MakeBusName(geo::Coordinates coordinates, int color_index, std::string_view bus_name) const;
+        svg::Circle MakeStop(geo::Coordinates coordinates) const;
+        svg::Text MakeStopUnderlayer(geo::Coordinates coordinates, std::string_view stop_name) const;
+        svg::Text MakeStopName(geo::Coordinates coordinates, std::string_view stop_name) const;
         int GetColorCapacity() const;
         void SetWidth(double width);
         void SetHeight(double height);
@@ -113,24 +123,26 @@ namespace renderer {
         void SetLineWidth(double line_width);
         void SetStopRadius(double stop_radius);
         void SetBusLabelFontSize(int bus_label_font_size);
-        template <typename OffsetNodeType>
-        void SetBusLabelOffset(const OffsetNodeType& bus_label_offset);
+        template <typename NodeContainer>
+        void SetBusLabelOffset(const NodeContainer& bus_label_offset);
         void SetStopLabelFontSize(int stop_label_font_size);
-        template <typename OffsetNodeType>
-        void SetStopLabelOffset(const OffsetNodeType& stop_label_offset);
-        template <typename ColorNodeType>
-        void SetUnderlayerColor(ColorNodeType& node);
+        template <typename NodeContainer>
+        void SetStopLabelOffset(const NodeContainer& stop_label_offset);
+        template <typename NodeHolster>
+        void SetUnderlayerColor(NodeHolster& node);
         void SetUnderlayerWidth(double underlayer_width);
-        template <typename ColorNodeType>
-        void SetColorPalette(ColorNodeTyper& node);
+        template <typename NodeHolster>
+        void SetColorPalette(NodeHolster& node);
+        void SetShpereProjector(std::vector<geo::Coordinates> all_coordinates);
     private:
         MapSettings settings_;
-        template <typename ColorNodeType>
+        SphereProjector proj;
+        template <typename NodeHolster>
         svg::Color MakeColorOutOfNode(NodeHolster& node);
     };
 
-    template <typename ColorNodeType>
-    svg::Color MapRenderer::MakeColorOutOfNode(ColorNodeTyper& node) {
+    template <typename NodeHolster>
+    svg::Color MapRenderer::MakeColorOutOfNode(NodeHolster& node) {
         if (node.IsString()) {
             return svg::Color(node.AsString());
         }
@@ -144,24 +156,24 @@ namespace renderer {
         }
         return svg::Color();
     }
-    template <typename ColorNodeType>
-    void MapRenderer::SetColorPalette(ColorNodeType& node) {
+    template <typename NodeHolster>
+    void MapRenderer::SetColorPalette(NodeHolster& node) {
         for (const auto& color : node) {
             settings_.color_palette.push_back(MakeColorOutOfNode(color));
         }
     }
-    template <typename OffsetNodeType>
-    void MapRenderer::SetStopLabelOffset(const OffsetNodeType& stop_label_offset) {
+    template <typename NodeContainer>
+    void MapRenderer::SetStopLabelOffset(const NodeContainer& stop_label_offset) {
         settings_.stop_label_offset.x = stop_label_offset[0].AsDouble();
         settings_.stop_label_offset.y = stop_label_offset[1].AsDouble();
     }
-    template <typename OffsetNodeType>
-    void MapRenderer::SetBusLabelOffset(const OffsetNodeType& bus_label_offset) {
+    template <typename NodeContainer>
+    void MapRenderer::SetBusLabelOffset(const NodeContainer& bus_label_offset) {
         settings_.bus_label_offset.x = bus_label_offset[0].AsDouble();
         settings_.bus_label_offset.y = bus_label_offset[1].AsDouble();
     }
-    template <typename ColorNodeType>
-    void MapRenderer::SetUnderlayerColor(ColorNodeType& node) {
+    template <typename NodeHolster>
+    void MapRenderer::SetUnderlayerColor(NodeHolster& node) {
         settings_.underlayer_color = MakeColorOutOfNode(node);
     }
 
