@@ -1,4 +1,5 @@
 #pragma once
+
 #include <optional>
 #include <cstdint>
 #include <iostream>
@@ -106,12 +107,12 @@ namespace svg {
             using namespace std::literals;
             if (fill_color_) {
                 out << " fill=\""sv;
-                std::visit(ColorPrinter{out}, *fill_color_);
+                std::visit(ColorPrinter{ out }, *fill_color_);
                 out << "\""sv;
             }
             if (stroke_color_) {
                 out << " stroke=\""sv;
-                std::visit(ColorPrinter{out}, *stroke_color_);
+                std::visit(ColorPrinter{ out }, *stroke_color_);
                 out << "\""sv;
             }
             if (stroke_width_) {
