@@ -373,6 +373,9 @@ namespace json {
     const Node::Value& Node::GetValue() const {
         return value_;
     }
+    Node::Value& Node::GetNonConstValue() {
+        return value_;
+    }
 
     Document::Document(Node root)
         : root_(move(root)) {
