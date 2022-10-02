@@ -1,11 +1,10 @@
 #include "map_renderer.h"
-#include <set>
 
 namespace renderer {
 
     inline const double EPSILON = 1e-6;
 
-    bool renderer::IsZero(double value) {
+    bool IsZero(double value) {
         return std::abs(value) < EPSILON;
     }
 
@@ -104,82 +103,4 @@ namespace renderer {
         SphereProjector new_one(all_coordinates.begin(), all_coordinates.end(), settings_.width, settings_.height, settings_.padding);
         std::swap(proj, new_one);
     }
-
-    void MapRenderer::RenderMap(request_handler::RequestHandler& handler, svg::Document& doc) {
-        int color_index = 0;
-        int color_capacity = GetColorCapacity();
-        std::vector<BusRender> all_buses;
-        std::set<std::string_view> all_stops;
-        SetShpereProjector(handler.GetAllStopCoordinates());
-        for (const std::string_view& bus_name : handler.GetAllBusesNames()) { //Проход по всем маршрутам и их отрисовка + заполнение массивов всех маршрутов и остановок для дальнейшей отрисовки
-            BusRender new_bus;
-            new_bus.name = bus_name;
-            new_bus.color_index = color_index;
-            std::vector<geo::Coordinates> current_stops_coordinates;
-            auto stat = handler.GetBusStat(bus_name);
-            if (stat.has_value()) {
-                if (stat.value().is_rounded) {
-                    new_bus.is_rounded = true;
-                    for (const auto& stop_name : handler.GetBusRoute(bus_name)) {
-                        new_bus.route.push_back(stop_name);
-                        all_stops.insert(stop_name);
-                        current_stops_coordinates.push_back(handler.GetStopCoordinates(stop_name));
-                    }
-                }
-                else {
-                    new_bus.is_rounded = false;
-                    auto bus_stops = handler.GetBusRoute(bus_name);
-                    for (const auto& stop_name : bus_stops) {
-                        new_bus.route.push_back(stop_name);
-                        all_stops.insert(stop_name);
-                        current_stops_coordinates.push_back(handler.GetStopCoordinates(stop_name));
-                    }
-                    std::reverse(bus_stops.begin(), bus_stops.end());
-                    bool is_first = true;
-                    for (const auto& stop_name : bus_stops) {
-                        if (is_first) {
-                            is_first = false;
-                            continue;
-                        }
-                        current_stops_coordinates.push_back(handler.GetStopCoordinates(stop_name));
-                    }
-                }
-            }
-
-            doc.Add(MakeRoutePolilyne(current_stops_coordinates, color_index));
-            if (color_index + 1 == color_capacity) {
-                color_index = 0;
-            }
-            else {
-                ++color_index;
-            }
-            all_buses.push_back(new_bus);
-        }
-        for (const BusRender& bus : all_buses) { // Отрисовка названий маршрутов
-            if (bus.is_rounded) {
-                doc.Add(MakeBusUnderlayer(handler.GetStopCoordinates(*bus.route.begin()), bus.name));
-                doc.Add(MakeBusName(handler.GetStopCoordinates(*bus.route.begin()), bus.color_index, bus.name));
-            }
-            else {
-                if (*(bus.route.begin()) == *(bus.route.end() - 1)) {
-                    doc.Add(MakeBusUnderlayer(handler.GetStopCoordinates(*bus.route.begin()), bus.name));
-                    doc.Add(MakeBusName(handler.GetStopCoordinates(*bus.route.begin()), bus.color_index, bus.name));
-                }
-                else {
-                    doc.Add(MakeBusUnderlayer(handler.GetStopCoordinates(*bus.route.begin()), bus.name));
-                    doc.Add(MakeBusName(handler.GetStopCoordinates(*bus.route.begin()), bus.color_index, bus.name));
-                    doc.Add(MakeBusUnderlayer(handler.GetStopCoordinates(*(bus.route.end() - 1)), bus.name));
-                    doc.Add(MakeBusName(handler.GetStopCoordinates(*(bus.route.end() - 1)), bus.color_index, bus.name));
-                }
-            }
-        }
-        for (const std::string_view& stop_name : all_stops) { // Отрисовка кружков остановок
-            doc.Add(MakeStop(handler.GetStopCoordinates(stop_name)));
-        }
-        for (const std::string_view& stop_name : all_stops) { // Отрисовка названий остановок
-            doc.Add(MakeStopUnderlayer(handler.GetStopCoordinates(stop_name), stop_name));
-            doc.Add(MakeStopName(handler.GetStopCoordinates(stop_name), stop_name));
-        }
-    }
-
 } //namespace renderer
