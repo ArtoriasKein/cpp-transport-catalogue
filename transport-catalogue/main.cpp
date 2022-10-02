@@ -1,5 +1,6 @@
 #include "json_reader.h"
 
 int main() {
-    ParseInput(std::cin);
+    JsonReader reader;
+    reader.ParseInput(std::cin);
 }
