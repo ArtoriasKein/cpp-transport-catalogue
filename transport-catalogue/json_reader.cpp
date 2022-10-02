@@ -8,16 +8,16 @@
  */
 
 JsonReader::JsonReader()
-:	catalogue_(transport_catalogue::TransportCatalogue()),
+	: catalogue_(transport_catalogue::TransportCatalogue()),
 	map_renderer_(renderer::MapRenderer()),
 	handler(catalogue_, map_renderer_)
 {
 }
 
 std::string JsonReader::Print(const json::Node& node) {
-    std::ostringstream out;
-    json::Print(json::Document{ node }, out);
-    return out.str();
+	std::ostringstream out;
+	json::Print(json::Document{ node }, out);
+	return out.str();
 }
 
 JsonReader::BusInput JsonReader::ParseBusInput(const json::Node& node) {
@@ -89,19 +89,16 @@ void JsonReader::ParseRenderSettings(const json::Node& node) {
 }
 
 void JsonReader::ParseInput(std::istream& input) {
-    json::Document queries(json::Load(input));
-    transport_catalogue::TransportCatalogue catalogue;
-    renderer::MapRenderer map_renderer;
-    request_handler::RequestHandler handler(catalogue, map_renderer);
-    for (const auto& [key, value] : queries.GetRoot().AsMap()) {
-        if (key == "base_requests") {
-            ParseBaseRequests(value);
-        }
-        else if (key == "render_settings") {
-            ParseRenderSettings(value);
-        }
-        else if (key == "stat_requests") {
-            std::cout << Print(handler.ParseStatRequests(value)) << std::endl;
-        }
-    }
+	json::Document queries(json::Load(input));
+	for (const auto& [key, value] : queries.GetRoot().AsMap()) {
+		if (key == "base_requests") {
+			ParseBaseRequests(value);
+		}
+		else if (key == "render_settings") {
+			ParseRenderSettings(value);
+		}
+		else if (key == "stat_requests") {
+			std::cout << Print(handler.ParseStatRequests(value)) << std::endl;
+		}
+	}
 }
