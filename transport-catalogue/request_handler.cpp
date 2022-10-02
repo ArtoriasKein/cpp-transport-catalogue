@@ -1,3 +1,4 @@
+#include "json_builder.h"
 #include "request_handler.h"
 #include <sstream>
 
@@ -85,28 +86,46 @@ namespace request_handler {
 	json::Node RequestHandler::MakeJsonOutputBus(const json::Node& node) {
 		auto request_result = GetBusStat(node.AsMap().at("name").AsString());
 		if (request_result) {
-			return json::Node(json::Dict{ {"request_id", node.AsMap().at("id").AsInt()}, {"stop_count", static_cast<int>(request_result.value().stops_count)}, {"unique_stop_count", static_cast<int>(request_result.value().unique_stops_count)}, {"route_length", request_result.value().distance}, {"curvature", request_result.value().curvature} });
+			return json::Builder{}.StartDict()
+				.Key("request_id").Value(node.AsMap().at("id").AsInt())
+				.Key("stop_count").Value(static_cast<int>(request_result.value().stops_count))
+				.Key("unique_stop_count").Value(static_cast<int>(request_result.value().unique_stops_count))
+				.Key("route_length").Value(request_result.value().distance)
+				.Key("curvature").Value(request_result.value().curvature)
+				.EndDict().Build();
 		}
-		return json::Node(json::Dict{ {"request_id", node.AsMap().at("id").AsInt()}, {"error_message", std::string("not found")} });
+		return json::Builder{}.StartDict()
+			.Key("request_id").Value(node.AsMap().at("id").AsInt())
+			.Key("error_message").Value(std::string("not found"))
+			.EndDict().Build();
 	}
 
 	json::Node RequestHandler::MakeJsonOutputStop(const json::Node& node) {
 		auto request_result = GetBusesByStop(node.AsMap().at("name").AsString());
 		if (!request_result) {
-			return json::Node(json::Dict{ {"request_id", node.AsMap().at("id").AsInt()}, {"error_message", std::string("not found")} });
+			return json::Builder{}.StartDict()
+				.Key("request_id").Value(node.AsMap().at("id").AsInt())
+				.Key("error_message").Value(std::string("not found"))
+				.EndDict().Build();
 		}
 		json::Array buses;
 		for (const auto& bus : request_result.value()) {
 			buses.push_back(json::Node(std::string(bus)));
 		}
-		return json::Node(json::Dict{ {"request_id", node.AsMap().at("id").AsInt()}, {"buses", buses} });
+		return json::Builder{}.StartDict()
+			.Key("request_id").Value(node.AsMap().at("id").AsInt())
+			.Key("buses").Value(buses)
+			.EndDict().Build();
 	}
 
 	json::Node RequestHandler::MakeJsonOutputMap(const json::Node& node, svg::Document& map) {
 		RenderMap(map);
 		std::ostringstream strm;
 		map.Render(strm);
-		return json::Node(json::Dict{ { "request_id", node.AsMap().at("id").AsInt() }, {"map", json::Node(strm.str())} });
+		return json::Builder{}.StartDict()
+			.Key("request_id").Value(node.AsMap().at("id").AsInt())
+			.Key("map").Value(json::Node(strm.str()).AsString())
+			.EndDict().Build();
 	}
 
 	json::Array RequestHandler::ParseStatRequests(const json::Node& array) {
