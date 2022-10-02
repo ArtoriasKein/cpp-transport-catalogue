@@ -181,7 +181,7 @@ namespace svg {
         out << "rgba" << "(" << static_cast<int>(color.red) << "," << static_cast<int>(color.green) << "," << static_cast<int>(color.blue) << "," << color.opacity << ")";
     }
     std::ostream& operator<<(std::ostream& out, const Color color) {
-        std::visit(ColorPrinter{out}, color);
+        std::visit(ColorPrinter{ out }, color);
         return out;
     }
 }  // namespace svg
