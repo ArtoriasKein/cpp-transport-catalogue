@@ -43,6 +43,7 @@ namespace json {
         bool IsMap() const;
         const Dict& AsMap() const;
         const Value& GetValue() const;
+        Value& GetNonConstValue();
     private:
         Value value_;
     };
