@@ -24,19 +24,16 @@ public:
         bool is_rounded;
     };
 
-	JsonReader();
-	std::string Print(const json::Node& node);
-	void ParseInput(std::istream& input);
-    	BusInput ParseBusInput(const json::Node& node);
-    	StopInput ParseStopInput(const json::Node& node);
-    	StopDistancesInput ParseStopWithDistanceInput(const json::Node& array);
-    	void ParseBaseRequests(const json::Node& array);
-    	void ParseRenderSettings(const json::Node& node);
+    JsonReader();
+    std::string Print(const json::Node& node);
+    void ParseInput(std::istream& input);
+    BusInput ParseBusInput(const json::Node& node);
+    StopInput ParseStopInput(const json::Node& node);
+    StopDistancesInput ParseStopWithDistanceInput(const json::Node& array);
+    void ParseBaseRequests(const json::Node& array);
+    void ParseRenderSettings(const json::Node& node);
 private:
-	transport_catalogue::TransportCatalogue catalogue_;
-	renderer::MapRenderer map_renderer_;
-	request_handler::RequestHandler handler;
+    transport_catalogue::TransportCatalogue catalogue_;
+    renderer::MapRenderer map_renderer_;
+    request_handler::RequestHandler handler;
 };
-
-
-
