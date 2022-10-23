@@ -2,13 +2,14 @@
 #include <unordered_set>
 #include "transport_catalogue.h"
 
-void transport_catalogue::TransportCatalogue::AddStop(const std::string& name, double latitude, double longitude) {
+void transport_catalogue::TransportCatalogue::AddStop(const std::string& name, double latitude, double longitude, int id) {
     geo::Coordinates coord;
     coord.lat = latitude;
     coord.lng = longitude;
     domain::Stop new_stop;
     new_stop.name = name;
     new_stop.coordinates = coord;
+    new_stop.id_ = id;
     stops_.push_back(std::move(new_stop));
     stopname_to_stop_[stops_.back().name] = &stops_.back();
     stopname_to_busname_[&stops_.back()];
@@ -160,4 +161,34 @@ void transport_catalogue::TransportCatalogue::AddStopDistances(const std::string
     for (const auto& info : stops_and_distances) {
         stops_to_distance[{stopname_to_stop_[stop_name], stopname_to_stop_[info.first]}] = info.second;
     }
+}
+
+const domain::Stop& transport_catalogue::TransportCatalogue::GetStopByName(const ::std::string_view& stop_name) const {
+    return *(stopname_to_stop_.at(stop_name));
+}
+
+size_t transport_catalogue::TransportCatalogue::GetAllStopsCount() const {
+    return stopname_to_stop_.size();
+}
+
+int transport_catalogue::TransportCatalogue::GetStopToStopDistance(const std::string_view& from, const std::string_view& to) const {
+    if (stops_to_distance.count({ stopname_to_stop_.at(from), stopname_to_stop_.at(to) }) != 0) {
+        return stops_to_distance.at({ stopname_to_stop_.at(from), stopname_to_stop_.at(to) });
+    }
+    if (stops_to_distance.count({ stopname_to_stop_.at(to), stopname_to_stop_.at(from) }) != 0) {
+        return stops_to_distance.at({ stopname_to_stop_.at(to), stopname_to_stop_.at(from) });
+    }
+    return std::abs(ComputeDistance(stopname_to_stop_.at(from)->coordinates, stopname_to_stop_.at(to)->coordinates));
+}
+
+bool transport_catalogue::TransportCatalogue::IsRoundBus(const ::std::string_view& bus_name) const {
+    return busname_to_bus_.at(bus_name)->is_rounded;
+}
+
+bool transport_catalogue::TransportCatalogue::CheckStopValidity(const ::std::string_view& stop_name) const {
+    return stopname_to_stop_.count(stop_name);
+}
+
+const ::std::unordered_map<::std::string_view, const domain::Bus*> transport_catalogue::TransportCatalogue::GetAllBuses() const {
+    return busname_to_bus_;
 }
