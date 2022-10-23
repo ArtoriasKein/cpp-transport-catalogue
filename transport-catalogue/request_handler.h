@@ -1,6 +1,7 @@
 #pragma once
 #include "json.h"
 #include "transport_catalogue.h"
+#include "transport_router.h"
 #include "map_renderer.h"
 
 namespace request_handler {
@@ -14,7 +15,7 @@ namespace request_handler {
         const std::set<std::string_view> GetAllBusesNames() const;
         const std::vector<std::string_view> GetBusRoute(const std::string_view bus_name) const;
         const geo::Coordinates GetStopCoordinates(const std::string_view stop_name) const;
-        void AddStopToCatalogue(std::string stop_name, double latitude, double longitude);
+        void AddStopToCatalogue(std::string stop_name, double latitude, double longitude, int id);
         void AddStopDistancesToCatalogue(std::string& stop_name, std::vector<std::pair<std::string, int>> stop_to_distance);
         void AddBusToCatalogue(std::string& bus_name, std::vector<std::string>& route, bool is_rounded);
         void SetWidthToRenderer(double width);
@@ -30,13 +31,18 @@ namespace request_handler {
         void SetUnderlayerWidthToRenderer(double underlayer_width);
         void SetColorPaletteToRenderer(const json::Array& as_array);
         void RenderMap(svg::Document& doc);
+        void SetBusVelocity(int velocity);
+        void SetBusWaitTime(int time);
+        void BuildGraph();
         json::Array ParseStatRequests(const json::Node& node);
     private:
         transport_catalogue::TransportCatalogue& db_;
         renderer::MapRenderer& renderer_;
+        transport_router::TransportRouter router_;
         json::Node MakeJsonOutputBus(const json::Node& node);
         json::Node MakeJsonOutputStop(const json::Node& node);
         json::Node MakeJsonOutputMap(const json::Node& node, svg::Document& map);
+        json::Node MakeJsonOutputRoute(const json::Node& node, std::optional<std::vector<transport_router::EdgeInfo>> info);
     };
 
 } // namespace request
