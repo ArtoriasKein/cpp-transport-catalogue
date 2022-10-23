@@ -6,7 +6,8 @@ namespace request_handler {
 
 	RequestHandler::RequestHandler(transport_catalogue::TransportCatalogue& db, renderer::MapRenderer& renderer)
 		: db_(db),
-		renderer_(renderer) {
+		renderer_(renderer)
+	{
 	}
 
 	std::optional<domain::Statistics> RequestHandler::GetBusStat(const std::string_view& bus_name) const {
@@ -34,8 +35,8 @@ namespace request_handler {
 		renderer_.RenderMap(*this, doc);
 	}
 
-	void RequestHandler::AddStopToCatalogue(std::string stop_name, double latitude, double longitude) {
-		db_.AddStop(stop_name, latitude, longitude);
+	void RequestHandler::AddStopToCatalogue(std::string stop_name, double latitude, double longitude, int id) {
+		db_.AddStop(stop_name, latitude, longitude, id);
 	}
 
 	void RequestHandler::AddStopDistancesToCatalogue(std::string& stop_name, std::vector<std::pair<std::string, int>> stop_to_distance) {
@@ -131,18 +132,74 @@ namespace request_handler {
 	json::Array RequestHandler::ParseStatRequests(const json::Node& array) {
 		json::Array requests;
 		for (const json::Node& node : array.AsArray()) {
-			if (node.AsMap().at("type").AsString() == "Bus") {
+			std::string request = node.AsMap().at("type").AsString();
+			if (request == "Bus") {
 				requests.push_back(MakeJsonOutputBus(node));
 			}
-			else if (node.AsMap().at("type").AsString() == "Stop") {
+			else if (request == "Stop") {
 				requests.push_back(MakeJsonOutputStop(node));
 			}
-			else if (node.AsMap().at("type").AsString() == "Map") {
+			else if (request == "Map") {
 				svg::Document map;
 				requests.push_back(MakeJsonOutputMap(node, map));
 			}
+			else if (request == "Route") {
+				requests.push_back(MakeJsonOutputRoute(node, router_.BuildRoute(db_, node.AsMap().at("from").AsString(), node.AsMap().at("to").AsString())));
+			}
 		}
 		return requests;
+	}
+
+	void RequestHandler::SetBusVelocity(int velocity) {
+		router_.SetBusVelocity(velocity);
+	}
+	void RequestHandler::SetBusWaitTime(int time) {
+		router_.SetBusWaitTime(time);
+	}
+
+	void RequestHandler::BuildGraph() {
+		router_.BuildGraph(db_);
+	}
+
+	json::Node RequestHandler::MakeJsonOutputRoute(const json::Node& node, std::optional<std::vector<transport_router::EdgeInfo>> info) {
+		if (!info.has_value()) {
+			return json::Builder{}.StartDict()
+				.Key("request_id").Value(node.AsMap().at("id").AsInt())
+				.Key("error_message").Value("not found")
+				.EndDict().Build();
+		}
+		if (info.value().size() == 0) {
+			return json::Builder{}.StartDict()
+				.Key("request_id").Value(node.AsMap().at("id").AsInt())
+				.Key("total_time").Value(0)
+				.Key("items").StartArray().EndArray()
+				.EndDict().Build();
+		}
+		json::Array items;
+		double total_time = 0;
+		for (const auto& edge_info : info.value()) {
+			total_time += edge_info.time;
+			if (edge_info.type == "Wait") {
+				items.push_back(json::Builder{}.StartDict()
+								.Key("type").Value(edge_info.type)
+								.Key("stop_name").Value(edge_info.stop_name)
+								.Key("time").Value(edge_info.time)
+								.EndDict().Build());
+			}
+			else {
+				items.push_back(json::Builder{}.StartDict()
+					.Key("type").Value(edge_info.type)
+					.Key("bus").Value(edge_info.bus)
+					.Key("time").Value(edge_info.time)
+					.Key("span_count").Value(edge_info.span_count)
+					.EndDict().Build());
+			}
+		}
+		return json::Builder{}.StartDict()
+			.Key("request_id").Value(node.AsMap().at("id").AsInt())
+			.Key("total_time").Value(total_time)
+			.Key("items").Value(items)
+			.EndDict().Build();
 	}
 
 } //namespace request
