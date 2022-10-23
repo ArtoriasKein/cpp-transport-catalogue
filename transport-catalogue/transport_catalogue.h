@@ -9,7 +9,7 @@ namespace transport_catalogue {
 
     class TransportCatalogue {
     public:
-        void AddStop(const ::std::string& name, double latitude, double longitude);
+        void AddStop(const ::std::string& name, double latitude, double longitude, int id);
         void AddBus(const ::std::string& name, const ::std::vector<::std::string>& stops, bool rounded);
         void AddStopDistances(const ::std::string& stop_name, const ::std::vector<::std::pair<::std::string, int>>& stops_and_distances);
         const ::std::optional<::std::set<std::string_view>> BusesOnStop(const ::std::string_view& stop_name) const;
@@ -17,7 +17,13 @@ namespace transport_catalogue {
         const ::std::set<std::string_view> GetAllBusesNames() const;
         const ::std::vector<std::string_view> GetBusRoute(const ::std::string_view& bus_name) const;
         const std::vector<geo::Coordinates> GetAllStopCoordinates() const;
+        const domain::Stop& GetStopByName(const ::std::string_view& stop_name) const;
+        size_t GetAllStopsCount() const;
+        int GetStopToStopDistance(const std::string_view& from, const std::string_view& to) const;
+        bool IsRoundBus(const ::std::string_view& bus_name) const;
+        bool CheckStopValidity(const ::std::string_view& stop_name) const;
         const geo::Coordinates GetStopCoordinates(const std::string_view& stop_name) const;
+        const ::std::unordered_map<::std::string_view, const domain::Bus*> GetAllBuses() const;
     private:
         ::std::deque<domain::Bus> buses_;
         ::std::deque<domain::Stop> stops_;
