@@ -2,11 +2,6 @@
 #include <iomanip>
 #include <sstream>
 
-/*
- * Здесь можно разместить код наполнения транспортного справочника данными из JSON,
- * а также код обработки запросов к базе и формирование массива ответов в формате JSON
- */
-
 JsonReader::JsonReader()
 	: catalogue_(transport_catalogue::TransportCatalogue()),
 	map_renderer_(renderer::MapRenderer()),
@@ -48,6 +43,7 @@ JsonReader::StopDistancesInput JsonReader::ParseStopWithDistanceInput(const json
 void JsonReader::ParseBaseRequests(const json::Node& array) {
 	std::vector<BusInput> bus_inputs;
 	std::vector<StopDistancesInput> stop_distances_inputs;
+	int next_stop_id = 0;
 	for (const json::Node& node : array.AsArray()) {
 		if (node.AsMap().at("type").AsString() == "Bus") {
 			bus_inputs.push_back(ParseBusInput(node));
@@ -55,12 +51,12 @@ void JsonReader::ParseBaseRequests(const json::Node& array) {
 		if (node.AsMap().at("type").AsString() == "Stop") {
 			if (node.AsMap().count("road_distances") != 0) {
 				StopInput stop_input = ParseStopInput(node);
-				handler.AddStopToCatalogue(stop_input.name, stop_input.latitude, stop_input.longitude);
+				handler.AddStopToCatalogue(stop_input.name, stop_input.latitude, stop_input.longitude, next_stop_id++);
 				stop_distances_inputs.push_back(ParseStopWithDistanceInput(node));
 			}
 			else {
 				StopInput stop_input = ParseStopInput(node);
-				handler.AddStopToCatalogue(stop_input.name, stop_input.latitude, stop_input.longitude);
+				handler.AddStopToCatalogue(stop_input.name, stop_input.latitude, stop_input.longitude, next_stop_id++);
 
 			}
 		}
@@ -99,6 +95,10 @@ void JsonReader::ParseInput(std::istream& input) {
 		}
 		else if (key == "stat_requests") {
 			std::cout << Print(handler.ParseStatRequests(value)) << std::endl;
+		}
+		else if (key == "routing_settings") {
+			handler.SetBusVelocity(value.AsMap().at("bus_velocity").AsDouble());
+			handler.SetBusWaitTime(value.AsMap().at("bus_wait_time").AsInt());
 		}
 	}
 }
