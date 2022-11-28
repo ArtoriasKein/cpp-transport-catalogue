@@ -21,8 +21,8 @@ void TransportRouter::BuildGraph(const transport_catalogue::TransportCatalogue& 
 			}
 			if (stop_to_vertexId.count(stop->name + "_mirror"s) == 0) {
 				stop_to_vertexId[stop->name + "_mirror"s] = stop_to_vertexId.size();
-				auto edgeId = graph_.value().AddEdge({stop_to_vertexId.at(stop->name), stop_to_vertexId.at(stop->name + "_mirror"s), bus_wait_time_ * 1.0});
-				id_to_edge_info[edgeId] = {"Wait"s, stop->name, ""s, bus_wait_time_ * 1.0, 0};
+				auto edgeId = graph_.value().AddEdge({ stop_to_vertexId.at(stop->name), stop_to_vertexId.at(stop->name + "_mirror"s), bus_wait_time_ * 1.0 });
+				id_to_edge_info[edgeId] = { "Wait"s, stop->name, ""s, bus_wait_time_ * 1.0, 0 };
 			}
 		}
 		for (auto it_begin = bus->route.begin(); it_begin != bus->route.end(); ++it_begin) {
@@ -33,10 +33,10 @@ void TransportRouter::BuildGraph(const transport_catalogue::TransportCatalogue& 
 			for (auto it_end = std::next(it_begin); it_end != bus->route.end(); ++it_end) {
 				time_forward += ((catalogue.GetStopToStopDistance(prev_stop->name, (*it_end)->name) * 1.0) / mph) / 60;
 				time_backward += ((catalogue.GetStopToStopDistance((*it_end)->name, prev_stop->name) * 1.0) / mph) / 60;
-				auto edgeId = graph_.value().AddEdge({stop_to_vertexId.at((*it_begin)->name + "_mirror"s), stop_to_vertexId.at((*it_end)->name), time_forward});
-				id_to_edge_info[edgeId] = {"Bus"s, ""s, bus->name, time_forward, ++stops_passed};
+				auto edgeId = graph_.value().AddEdge({ stop_to_vertexId.at((*it_begin)->name + "_mirror"s), stop_to_vertexId.at((*it_end)->name), time_forward });
+				id_to_edge_info[edgeId] = { "Bus"s, ""s, bus->name, time_forward, ++stops_passed };
 				if (!bus->is_rounded) {
-					edgeId = graph_.value().AddEdge({stop_to_vertexId.at((*it_end)->name + "_mirror"s), stop_to_vertexId.at((*it_begin)->name), time_backward});
+					edgeId = graph_.value().AddEdge({ stop_to_vertexId.at((*it_end)->name + "_mirror"s), stop_to_vertexId.at((*it_begin)->name), time_backward });
 					id_to_edge_info[edgeId] = { "Bus"s, ""s, bus->name, time_backward, stops_passed };
 				}
 				prev_stop = *it_end;
@@ -72,4 +72,11 @@ std::optional<std::vector<transport_router::EdgeInfo>> TransportRouter::BuildRou
 	else {
 		return {};
 	}
-} 
+}
+
+int TransportRouter::GetBusWaitTime() const {
+	return bus_wait_time_;
+}
+double TransportRouter::GetBusVelocity() const {
+	return bus_velocity_;
+}
