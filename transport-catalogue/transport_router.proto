@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package router_proto;
+
+message RouterInfo {
+    int32 bus_wait_time = 1;
+    double bus_velocity = 2;
+}
