@@ -15,7 +15,7 @@ namespace request_handler {
         const std::set<std::string_view> GetAllBusesNames() const;
         const std::vector<std::string_view> GetBusRoute(const std::string_view bus_name) const;
         const geo::Coordinates GetStopCoordinates(const std::string_view stop_name) const;
-        void AddStopToCatalogue(std::string stop_name, double latitude, double longitude, int id);
+        void AddStopToCatalogue(std::string stop_name, double latitude, double longitude);
         void AddStopDistancesToCatalogue(std::string& stop_name, std::vector<std::pair<std::string, int>> stop_to_distance);
         void AddBusToCatalogue(std::string& bus_name, std::vector<std::string>& route, bool is_rounded);
         void SetWidthToRenderer(double width);
@@ -27,14 +27,18 @@ namespace request_handler {
         void SetBusLabelOffsetToRenderer(const json::Array& as_array);
         void SetStopLabelFontSizeToRenderer(int stop_label_font_size);
         void SetStopLabelOffsetToRenderer(const json::Array& as_array);
-        void SetUnderlayerColorToRenderer(const json::Node& node);
+        void SetUnderlayerColorToRenderer(svg::Color color);
         void SetUnderlayerWidthToRenderer(double underlayer_width);
-        void SetColorPaletteToRenderer(const json::Array& as_array);
+        void SetColorPaletteToRenderer(std::vector<svg::Color> color_palette);
         void RenderMap(svg::Document& doc);
         void SetBusVelocity(int velocity);
         void SetBusWaitTime(int time);
+        double GetBusVelocity() const;
+        int GetBusWaitTime() const;
         void BuildGraph();
         json::Array ParseStatRequests(const json::Node& node);
+        void SetCatalogue(transport_catalogue::TransportCatalogue& catalogue);
+        void SetRenderer(renderer::MapRenderer& renderer);
     private:
         transport_catalogue::TransportCatalogue& db_;
         renderer::MapRenderer& renderer_;
