@@ -35,8 +35,8 @@ namespace request_handler {
 		renderer_.RenderMap(*this, doc);
 	}
 
-	void RequestHandler::AddStopToCatalogue(std::string stop_name, double latitude, double longitude, int id) {
-		db_.AddStop(stop_name, latitude, longitude, id);
+	void RequestHandler::AddStopToCatalogue(std::string stop_name, double latitude, double longitude) {
+		db_.AddStop(stop_name, latitude, longitude);
 	}
 
 	void RequestHandler::AddStopDistancesToCatalogue(std::string& stop_name, std::vector<std::pair<std::string, int>> stop_to_distance) {
@@ -74,14 +74,14 @@ namespace request_handler {
 	void RequestHandler::SetStopLabelOffsetToRenderer(const json::Array& as_array) {
 		renderer_.SetStopLabelOffset(as_array);
 	}
-	void RequestHandler::SetUnderlayerColorToRenderer(const json::Node& node) {
-		renderer_.SetUnderlayerColor(node);
+	void RequestHandler::SetUnderlayerColorToRenderer(svg::Color color) {
+		renderer_.SetUnderlayerColor(color);
 	}
 	void RequestHandler::SetUnderlayerWidthToRenderer(double underlayer_width) {
 		renderer_.SetUnderlayerWidth(underlayer_width);
 	}
-	void RequestHandler::SetColorPaletteToRenderer(const json::Array& as_array) {
-		renderer_.SetColorPalette(as_array);
+	void RequestHandler::SetColorPaletteToRenderer(std::vector<svg::Color> color_palette) {
+		renderer_.SetColorPalette(color_palette);
 	}
 
 	json::Node RequestHandler::MakeJsonOutputBus(const json::Node& node) {
@@ -181,10 +181,10 @@ namespace request_handler {
 			total_time += edge_info.time;
 			if (edge_info.type == "Wait") {
 				items.push_back(json::Builder{}.StartDict()
-								.Key("type").Value(edge_info.type)
-								.Key("stop_name").Value(edge_info.stop_name)
-								.Key("time").Value(edge_info.time)
-								.EndDict().Build());
+					.Key("type").Value(edge_info.type)
+					.Key("stop_name").Value(edge_info.stop_name)
+					.Key("time").Value(edge_info.time)
+					.EndDict().Build());
 			}
 			else {
 				items.push_back(json::Builder{}.StartDict()
@@ -200,6 +200,20 @@ namespace request_handler {
 			.Key("total_time").Value(total_time)
 			.Key("items").Value(items)
 			.EndDict().Build();
+	}
+
+	void RequestHandler::SetCatalogue(transport_catalogue::TransportCatalogue& catalogue) {
+		db_ = catalogue;
+	}
+
+	void RequestHandler::SetRenderer(renderer::MapRenderer& renderer) {
+		renderer_ = renderer;
+	}
+	double RequestHandler::GetBusVelocity() const {
+		return router_.GetBusVelocity();
+	}
+	int RequestHandler::GetBusWaitTime() const {
+		return router_.GetBusWaitTime();
 	}
 
 } //namespace request
