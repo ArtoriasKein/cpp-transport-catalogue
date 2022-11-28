@@ -18,6 +18,8 @@ namespace transport_router {
 		TransportRouter() = default;
 		void SetBusWaitTime(int bus_wait_time);
 		void SetBusVelocity(double bus_velocity);
+		int GetBusWaitTime() const;
+		double GetBusVelocity() const;
 		void BuildGraph(const transport_catalogue::TransportCatalogue& catalogue);
 		std::optional<std::vector<transport_router::EdgeInfo>> BuildRoute(const transport_catalogue::TransportCatalogue& catalogue, const std::string& from, const std::string& to);
 	private:
