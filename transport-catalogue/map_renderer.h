@@ -125,15 +125,23 @@ namespace renderer {
         void SetBusLabelFontSize(int bus_label_font_size);
         template <typename OffsetNodeType>
         void SetBusLabelOffset(const OffsetNodeType& bus_label_offset);
+        void SetBusLabelOffset(const double x, const double y);
         void SetStopLabelFontSize(int stop_label_font_size);
         template <typename OffsetNodeType>
         void SetStopLabelOffset(const OffsetNodeType& stop_label_offset);
-        template <typename ColorNodeType>
-        void SetUnderlayerColor(ColorNodeType& node);
+        void SetStopLabelOffset(const double x, const double y);
+        void SetUnderlayerColor(const std::string& name);
+        void SetUnderlayerColor(const svg::Rgb& rgb);
+        void SetUnderlayerColor(const svg::Rgba& rgba);
+        void SetUnderlayerColor(const svg::Color& color);
         void SetUnderlayerWidth(double underlayer_width);
-        template <typename ColorNodeType>
-        void SetColorPalette(ColorNodeType& node);
+        void SetColorPalette(std::vector<svg::Color>& color_palette);
+        void AddColorToPalette(const std::string& name);
+        void AddColorToPalette(const svg::Rgb& rgb);
+        void AddColorToPalette(const svg::Rgba& rgba);
+        void AddColorToPalette(const svg::Color& color);
         void SetShpereProjector(std::vector<geo::Coordinates> all_coordinates);
+        const MapSettings GetSettings() const;
     private:
         MapSettings settings_;
         SphereProjector proj;
@@ -234,12 +242,6 @@ namespace renderer {
         }
         return svg::Color();
     }
-    template <typename ColorNodeType>
-    void MapRenderer::SetColorPalette(ColorNodeType& node) {
-        for (const auto& color : node) {
-            settings_.color_palette.push_back(MakeColorOutOfNode(color));
-        }
-    }
     template <typename OffsetNodeType>
     void MapRenderer::SetStopLabelOffset(const OffsetNodeType& stop_label_offset) {
         settings_.stop_label_offset.x = stop_label_offset[0].AsDouble();
@@ -249,10 +251,6 @@ namespace renderer {
     void MapRenderer::SetBusLabelOffset(const OffsetNodeType& bus_label_offset) {
         settings_.bus_label_offset.x = bus_label_offset[0].AsDouble();
         settings_.bus_label_offset.y = bus_label_offset[1].AsDouble();
-    }
-    template <typename ColorNodeType>
-    void MapRenderer::SetUnderlayerColor(ColorNodeType& node) {
-        settings_.underlayer_color = MakeColorOutOfNode(node);
     }
 
 } // namespace renderer
