@@ -103,4 +103,46 @@ namespace renderer {
         SphereProjector new_one(all_coordinates.begin(), all_coordinates.end(), settings_.width, settings_.height, settings_.padding);
         std::swap(proj, new_one);
     }
+
+    const MapRenderer::MapSettings MapRenderer::GetSettings() const {
+        return settings_;
+    }
+
+    void MapRenderer::SetBusLabelOffset(const double x, const double y) {
+        settings_.bus_label_offset.x = x;
+        settings_.bus_label_offset.y = y;
+    }
+
+    void MapRenderer::SetStopLabelOffset(const double x, const double y) {
+        settings_.stop_label_offset.x = x;
+        settings_.stop_label_offset.y = y;
+    }
+
+    void MapRenderer::SetUnderlayerColor(const std::string& name) {
+        settings_.underlayer_color = name;
+    }
+    void MapRenderer::SetUnderlayerColor(const svg::Rgb& rgb) {
+        settings_.underlayer_color = rgb;
+    }
+    void MapRenderer::SetUnderlayerColor(const svg::Rgba& rgba) {
+        settings_.underlayer_color = rgba;
+    }
+    void MapRenderer::SetUnderlayerColor(const svg::Color& color) {
+        settings_.underlayer_color = color;
+    }
+    void MapRenderer::AddColorToPalette(const std::string& name) {
+        settings_.color_palette.push_back(name);
+    }
+    void MapRenderer::AddColorToPalette(const svg::Rgb& rgb) {
+        settings_.color_palette.push_back(rgb);
+    }
+    void MapRenderer::AddColorToPalette(const svg::Rgba& rgba) {
+        settings_.color_palette.push_back(rgba);
+    }
+    void MapRenderer::AddColorToPalette(const svg::Color& color) {
+        settings_.color_palette.push_back(color);
+    }
+    void MapRenderer::SetColorPalette(std::vector<svg::Color>& color_palette) {
+        settings_.color_palette = color_palette;
+    }
 } //namespace renderer
