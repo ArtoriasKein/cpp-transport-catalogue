@@ -1,6 +1,34 @@
-#include "json_reader.h"
+#include <fstream>
+#include <iostream>
+#include <string_view>
+#include "serialization.h"
 
-int main() {
-    JsonReader reader;
-    reader.ParseInput(std::cin);
+using namespace std::literals;
+
+void PrintUsage(std::ostream& stream = std::cerr) {
+    stream << "Usage: transport_catalogue [make_base|process_requests]\n"sv;
+}
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        PrintUsage();
+        return 1;
+    }
+    const std::string_view mode(argv[1]);
+    Serialization serialization;
+
+    if (mode == "make_base"sv) {
+        serialization.MakeBase(std::cin);
+        // make base here
+
+    }
+    else if (mode == "process_requests"sv) {
+        serialization.ProcessRequests(std::cin);
+        // process requests here
+
+    }
+    else {
+        PrintUsage();
+        return 1;
+    }
 }
